@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '/ui/buku_form.dart';
+import '../bloc/buku_bloc.dart'; // Pastikan Anda mengimpor bloc atau service yang digunakan
 import '../model/buku.dart';
 
 // ignore: must_be_immutable
@@ -124,37 +125,57 @@ class _BukuDetailState extends State<BukuDetail> {
 
   void confirmHapus() {
     AlertDialog alertDialog = AlertDialog(
+      backgroundColor: const Color(0xFF2A4B4B), // Warna latar belakang dialog
       title: Row(
         children: const [
-          Icon(Icons.warning, color: Colors.red, size: 24), // Ikon peringatan
-          SizedBox(width: 8), // Jarak antara ikon dan teks
+          Icon(Icons.warning, color: Colors.red, size: 24),
+          SizedBox(width: 8),
           Text("Konfirmasi Hapus",
-              style: TextStyle(color: Colors.black)), // Judul dialog
+              style: TextStyle(color: Colors.white)), // Ubah warna teks
         ],
       ),
       content: const Text(
         "Yakin ingin menghapus data ini?",
-        style: TextStyle(color: Colors.black),
+        style: TextStyle(color: Colors.white), // Ubah warna teks
       ),
       actions: [
-        // Tombol hapus
         OutlinedButton(
           child: const Text("Ya", style: TextStyle(color: Colors.white)),
-          onPressed: () {
-            // Logika penghapusan
-            Navigator.pop(context); // Close the dialog after deletion
+          onPressed: () async {
+            try {
+              bool isDeleted = await BukuBloc.deleteBuku(id: widget.buku!.id);
+              if (isDeleted) {
+                Navigator.of(context).pop(); // Tutup dialog
+                Navigator.of(context).pop(); // Kembali ke halaman sebelumnya
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Buku berhasil dihapus.')),
+                );
+              } else {
+                // Jika penghapusan gagal
+                Navigator.of(context).pop(); // Tutup dialog
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content:
+                          Text('Gagal menghapus buku. Silakan coba lagi.')),
+                );
+              }
+            } catch (e) {
+              // Tangani error
+              Navigator.of(context).pop(); // Tutup dialog
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Terjadi kesalahan: ${e.toString()}')),
+              );
+            }
           },
           style: OutlinedButton.styleFrom(
-            backgroundColor: const Color(0xFF1A3A3A), // Warna tombol
+            backgroundColor: const Color(0xFF1A3A3A),
           ),
         ),
-
-        // Tombol batal
         OutlinedButton(
           child: const Text("Batal", style: TextStyle(color: Colors.white)),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.of(context).pop(),
           style: OutlinedButton.styleFrom(
-            backgroundColor: const Color(0xFF1A3A3A), // Warna tombol
+            backgroundColor: const Color(0xFF1A3A3A),
           ),
         )
       ],
